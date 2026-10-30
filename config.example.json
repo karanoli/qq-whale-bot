@@ -18,12 +18,7 @@
   "debug_snapshots": false,
   "vision": {
     "enabled": false,
-    "endpoint": "http://127.0.0.1:8081/v1/chat/completions",
-    "model": "vision-local",
-    "api_key_env": "QQ_BOT_VISION_API_KEY",
-    "allowed_roots": [
-      "conversations"
-    ]
+    "mode": "native"
   },
   "reasoning": {
     "default": "medium",
@@ -37,5 +32,9 @@
       "max_tokens": 2304,
       "timeout_seconds": 600
     }
-  }
+  },
+  "slang": "internet-slang.md",
+  "trust_env": false,
+  "output_token_parameter": "max_tokens",
+  "check_models": true
 }

@@ -2,136 +2,132 @@
 
 [![Core checks](https://github.com/karanoli/qq-whale-bot/actions/workflows/core-checks.yml/badge.svg)](https://github.com/karanoli/qq-whale-bot/actions/workflows/core-checks.yml)
 
-通过 **Windows 官方 QQ 的桌面界面**接入本地聊天模型的实验项目：读取已加载的聊天文字、按会话保存独立记忆、生成回复，再用普通输入与发送按钮发出。支持可选的本地截图识图。
+看大家都在 QQ 养鱼，我也想养一只。又没钱一直调 API，就先用手头的电脑折腾了个本地 AI；原来的第三方 QQ 接入路线又碰上封号，于是改成操作官方 QQ 窗口的脚本。
 
-**机器人运行在 Windows。Mac 用于整理源码、开发与核心逻辑测试，不能直接运行 QQ 桌面控制。**
+最后就有了这只会护饭、会嘴欠、会看图，也可以选择不说话的鲸鱼。这个仓库把 **QQ 桌面接入、本地 AI 部署、人格和网络词典、外部模型适配**放在一起。
 
-## 能做什么
+> 机器人在 Windows 10/11 运行，Mac 可开发和测试核心逻辑。桌面脚本也需要保持 QQ 可见、桌面解锁；换一种接入方式不等于保证不封号。
 
-- 群聊与私聊监听名单：新增、改名、修改号码、删除、启停。
-- 群之间、私聊之间独立记忆；人格写在 Markdown 中。
-- 多会话轮询，默认30秒回复冷却；这不是固定回复周期，切群和模型推理可能更久。
-- 无障碍直读 QQ 当前加载的消息；保留旧选取复制实现作为后备。
-- 群号精确核验、用户草稿保护、整段粘贴核验、发送后回读；送达不确定时不盲目重发。
-- 图片按对应消息节点截图，交给本机视觉模型；取图失败明确提示未读到。
-- F8 停止、一键重置、截图和缓存数量限制。
+## 实现了什么
 
-程序会切换会话并操作鼠标键盘。需保持已登录的 QQ 可见，桌面解锁，避免与手动操作同时进行。它不是全量后台消息数据库读取器，也不提供举报、群管理或防封号保证。
+- **文字聊天**：通过 UI Automation 读取 QQ 已加载的群聊/私聊，不解密数据库、不注入 QQ、不使用第三方 QQ 协议。保留旧选取复制后备代码。
+- **多会话**：管理器支持新增、修改、改名、删除、启停群或个人；默认30秒冷却，实际速度还取决于切群和推理时间。
+- **独立记忆**：按“群/个人＋号码”隔离上下文、待处理消息和发送状态，避免串群。
+- **原生识图**：将对应图片节点截成 JPEG，与文字一起发给支持图片的聊天模型；理解和评价、接梗优先，明确问细节时才描述。
+- **选择沉默**：普通刷图、重复图、无自然接点时，模型可以不回；内部静默标记不会发送到 QQ。
+- **人格可改**：`personality.md` 和 `internet-slang.md` 每轮读取。示例包含鲸鱼娘风格、zako、vw50/疯四等语境，不是训练权重或自动联网学习。
+- **发送核验**：核对目标号码和标题，保护用户草稿，整段粘贴后检查，发送后回读。送达不确定会记账，不自动重发。
+- **可替换模型**：同一套程序既能连本地 Strata，也能连兼容 OpenAI Chat Completions 的 API。提供 JSON 命令行桥接。
+- **常用入口**：一键部署、启动、停止、重置记忆；F8 急停；图片、去重记录和日志有保留上限。
 
-## 运行条件与已知边界
+目前没有实现举报、踢人等群管理功能，也没有把“@昵称文本”包装成真正的 QQ @、戳一戳或其他官方消息接口。
 
-- Windows 10/11 交互桌面、Windows PowerShell 5.1、64位 Python 3.10～3.12（含 tkinter）。
-- 官方 Windows QQ，且该版本实际提供聊天 UI Automation 节点；版本或无障碍状态不兼容时会停止读取，不会自动修改 QQ。
-- 布局来自一套 **1200×800** QQ 窗口。OCR 坐标、侧栏和阈值仍有布局依赖；改变系统缩放、QQ 字号或布局后可能需要修改 desktop.py / transport.py。
-- 文本时间是首次观察时间，不是 QQ 原始发送时间。忙群消息被大量刷新、无法唯一对齐时会建立新基线，可能漏读。
-- 截图是显示出来的缩略图，不是缓存原图；小字、背景和人物细节可能识错，动图只识别当前帧。
+## 5070 怎么跑 1017
 
-UI Automation 的能力取决于应用暴露的界面信息，参见 [Microsoft 官方概述](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/ui-automation-overview)。Python 安装方式参见 [Python 官方 Windows 文档](https://docs.python.org/3/using/windows.html)。
+本地路线复现的是 **DeepSeek-V4.1-Flash-1017 的 ISTA-DAS IQ2_XS / 2.25bpw 量化版本**，使用 [Strata v0.2.8](https://github.com/Niko1221/Strata/releases/tag/v0.2.8) 的 `strata-dsv41 0.1.54` CUDA13 引擎，直接启用 DeepSeek 自己的视觉组件。
 
-## 安装与启动
+实机基线是 **RTX 5070 12GB＋Ryzen 9700X＋48GB DDR5＋SSD，Windows 10**。这里的“能跑”依靠量化、专家按需读取、显卡/CPU协同和 RAM/SSD 缓存，**不是把48GB内存变成48GB显存，也不是所有计算都交给显卡**。推理速度受 CPU、SSD、缓存命中和上下文影响很大。
 
-1. 下载本仓库 ZIP 或克隆到普通用户可写的文件夹，避免解压到 Program Files。
-2. 安装 Python 3.10～3.12。双击 **setup.cmd**，创建本目录 .venv 并安装依赖。已有配置不会被覆盖。
-3. 单独启动提供 OpenAI 兼容接口的聊天模型服务。本仓库不包含大模型权重、QQ 安装包或模型服务。
-4. 编辑自动生成的 **config.json**：
-   - endpoint：实际聊天接口完整地址，须以 /chat/completions 结尾。
-   - model：服务端接受的模型名；local-chat 只是示例。
-   - self_names：当前机器人账号自己的 QQ 昵称，避免把自己的话当作新消息。
-5. 编辑 **personality.md** 调整性格。程序下一次生成回复时读取最新内容。
-6. 打开并登录 QQ，先在最近会话中打开要监听的对象。可运行 **prepare-window.cmd** 将 QQ 调整到配置的窗口大小；这只调整尺寸，不会自动完成 DPI/OCR 校准。
-7. 运行 **manage.cmd**，输入号码和当前完整群名/昵称，核验后加入。初始监听名单为空，不会自动给任何人发消息。
-8. 点击管理器里的“保存并开始监听”，或双击 **start.cmd**。管理器打开时会暂停机器人，避免输入冲突。
-
-第一次读取仅建立基线，不回答整屏旧消息；加入后发送新的普通文字进行测试。建议先用自己的测试会话核验收发，再添加更多会话。
-
-也可以在 PowerShell 中安装，并显式指定 Python：
-
-```powershell
-.\setup.ps1 -Python "C:\Path\To\Python312\python.exe"
-```
-
-首次启动会建立当前用户的交互计划任务 **QQWhaleBot**。运行后可以关闭启动终端；锁屏或退出登录后桌面操作仍会失效。项目不会修改全局 PowerShell 执行策略，不会启动或停止你已有的其他模型任务。若系统策略不允许注册计划任务，可在本项目终端直接运行 .venv\Scripts\python.exe bot.py。
-
-## 配置示例
-
-```json
-{
-  "endpoint": "http://127.0.0.1:8095/v1/chat/completions",
-  "model": "your-served-model-name",
-  "self_names": ["你当前的QQ昵称"],
-  "persona": "personality.md",
-  "cooldown_seconds": 30,
-  "send_reasoning_parameters": false
-}
-```
-
-这是字段节选，完整文件以 config.example.json 为准。路径相对 config.json 所在目录解析，支持移动整个项目文件夹。
-
-send_reasoning_parameters 默认为 false，只发送常见的聊天参数。只有模型服务明确支持 reasoning_effort 和 reasoning_budget_tokens 时才打开它；medium / high 的预算由 reasoning 字段配置。识别到证明、复杂代码等内容时可选择更高预算，实际效果仍由服务端决定。
-
-需要认证时，在启动程序前设置环境变量：
-
-```powershell
-$env:QQ_BOT_API_KEY = "你的聊天服务密钥"
-.\start.ps1
-```
-
-密钥不写入仓库。该变量属于当前 PowerShell 进程，计划任务未必继承它；需要后台任务使用密钥时，请在自己的 Windows 用户环境变量中配置后重新登录。也可在同一终端直接运行 .venv\Scripts\python.exe bot.py，不经过计划任务。
-
-## 开启识图
-
-先独立启动支持图片输入的本机 OpenAI 兼容视觉服务，再设置：
-
-```json
-"vision": {
-  "enabled": true,
-  "endpoint": "http://127.0.0.1:8081/v1/chat/completions",
-  "model": "vision-local",
-  "api_key_env": "QQ_BOT_VISION_API_KEY",
-  "allowed_roots": ["conversations"]
-}
-```
-
-识图服务目前限本机地址。截图需要原始图片节点仍在 QQ 已加载的界面中，并能完整显示在聊天视口内；界面切换、节点消失或图片太大无法完整显示时，会拒绝猜测。获取后会恢复到最新消息。
-
-图片数据形如：
-
-```json
-{
-  "image_count": 1,
-  "images": ["conversations/group_示例号码/captured-images/消息哈希.jpg"],
-  "vision": ["本地图像模型给出的观察描述"]
-}
-```
-
-每个会话最多保留最近32张自身生成的截图和32份识图描述缓存，聊天上下文保留60条。详见 [本地数据与隐私](docs/PRIVACY.md)。
-
-## 常用操作
-
-| 入口 | 操作 |
+| 项目 | 本方案 |
 | --- | --- |
-| setup.cmd | 安装依赖，生成本地配置 |
-| manage.cmd | 编辑监听名单，打开时暂停机器人 |
-| start.cmd | 检查模型服务并开始监听 |
-| stop.cmd / F8 | 停止机器人，保留 QQ 和模型服务 |
-| reset.cmd | 停止并重置记忆，保留配置和人格，保留最近3份备份 |
-| doctor.cmd | 只读检查依赖和模型接口 |
-| prepare-window.cmd | 将 QQ 调整到配置的窗口大小 |
+| 主模型权重 | 4个分片，约155.23 GB |
+| Engram 表 | 约110.60 GB |
+| DSpark 草稿组件 | 约7.98 GB；保留依赖，低显存下引擎可自动不启用 |
+| 原生视觉组件 | 约0.97 GB；不是千问转述 |
+| 模型相关下载合计 | **274,776,017,997 字节，约274.78 GB / 255.9 GiB** |
+| 固定上下文 | 8192 tokens |
+| 路由专家 | 每token激活6个；保留模型完整专家权重 |
+| 思考预算 | 日常medium 384，复杂任务high 1536；仅兼容服务启用这些扩展参数 |
 
-日志与状态位于 bot-log.jsonl、bot-status.json 和各会话 status.json。它们可能包含聊天内容，均被 Git 忽略。打开 debug_snapshots 会保存诊断截图，使用后自行清理。
+原机功能测试中，单条模型回复约15秒到两分钟都有出现；数字识图约29秒，真实 QQ 截图评价约67秒。它不等于即时聊天，也不代表完整基准分数。具体机制、硬件要求、SSD读写和来源见 [本地 AI 部署](docs/LOCAL_AI.md)，验证边界见 [测试说明](docs/TESTING.md)。
 
-## 开发与验证
+## 部署：本地 AI 一起装
 
-核心逻辑测试不需要 QQ、Windows 扩展、模型或账号：
+推荐至少48GB内存、约12GB显存、支持CUDA13的NVIDIA驱动，SSD额外预留 **约280GB以上**。下载/断点续传会保留分片；请勿用接近满盘的磁盘。
 
-```bash
-python3 -m unittest discover -s tests -v
+**下载仓库 ZIP、解压后双击 `install.cmd`**，默认安装机器人依赖和本地模型。没有合适 Python 时会下载安装官方3.12.10，执行前校验签名；不需要 Git。已存在的人格、监听名单不会被覆盖。部署过程不登录 QQ、不自动给任何人发消息。
+
+也可以从普通 PowerShell 复制执行：
+
+```powershell
+$work = 'D:\QQWhale'
+New-Item -ItemType Directory -Force $work | Out-Null
+Invoke-WebRequest -UseBasicParsing 'https://github.com/karanoli/qq-whale-bot/archive/refs/heads/main.zip' -OutFile "$work\source.zip"
+Expand-Archive "$work\source.zip" -DestinationPath $work -Force
+Set-Location "$work\qq-whale-bot-main"
+
+# 只查看方案，不下载
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -Plan
+
+# 修改昵称和模型保存位置后执行
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -Mode Local -QQName '你当前的QQ昵称' -AiRoot 'D:\QQWhaleAI'
 ```
 
-测试覆盖消息去重与基线、独立记忆、图片路径保留、上下文、推理配置、时间前缀清理、日志轮转及重置备份。GitHub Actions 在 Linux 和 Windows 运行核心测试，并在 Windows 解析 PowerShell 脚本。
+可选：网络访问 HF 困难时，显式选择你信任的镜像：
 
-Windows 桌面收发需在真人登录的 QQ 环境中另外测试；CI 不会登录 QQ 或发送消息。公开整理版与原运行版本的验证差异见 [验证说明](docs/TESTING.md)，代码分工见 [工作方式](docs/ARCHITECTURE.md)。
+```powershell
+.\install.ps1 -Mode Local -QQName '你当前的QQ昵称' -AiRoot 'D:\QQWhaleAI' -HfEndpoint 'https://hf-mirror.com'
+```
 
-## 公开内容
+已有这套旧布局的模型，避免重新下载：
 
-仅发布源代码、示例配置、示例人格和文档。不会上传账号、群号、聊天记录、截图、模型或本地部署日志。公开仓库当前尚未指定开源许可证。
+```powershell
+.\install.ps1 -Mode Local -AiRoot 'D:\QQWhaleAI' -ReuseModels 'D:\AIchat\models\strata-v41'
+```
+
+复用按文件名、大小及SHA256核对，首次会完整读取权重做校验；同盘使用硬链接，**不会复制另一份275GB模型或修改原权重**。跨盘不自动复制。安装中断后重跑相同命令续传。完整参数、目录和逐步命令见 [部署详解](docs/LOCAL_AI.md)。
+
+### 登录 QQ 与开始聊天
+
+1. 安装并登录官方 Windows QQ。先在 QQ 中打开要监听的会话，使它出现在最近会话中。
+2. 如果读不到聊天节点，退出 QQ 后按 [QQ 无障碍设置](docs/LOCAL_AI.md#qq读取前的设置) 用 `--force-renderer-accessibility` 启动；本项目不自动重启你的 QQ。
+3. 确认 `config.json` 的 `self_names` 是机器人当前昵称；运行 `prepare-window.cmd` 调整窗口到1200×800。系统缩放和QQ布局仍需匹配。
+4. 运行 `manage.cmd`，输入群/个人号码与当前完整名称，核验后添加。初始名单为空。
+5. 双击 **`start-all.cmd`**：启动/复用原生模型服务，再开始监听。第一屏只建基线，请发一条新消息测试。
+6. **`stop.cmd` / F8** 只停机器人；**`stop-all.cmd`** 同时停止本仓库自己启动的本地模型；QQ保留。
+
+程序使用交互计划任务，关闭启动终端后可继续运行；锁屏、切换桌面、关闭QQ或同时手动操作会使桌面控制失败。旧版小鲸仍运行时，新版会拒绝同时操作 QQ。
+
+## 部署：使用已有 API，不装275GB模型
+
+```powershell
+.\install.ps1 -Mode API -QQName '你当前的QQ昵称' -Endpoint 'https://api.example.com/v1/chat/completions' -Model '你的模型名'
+```
+
+API密钥只设置在自己电脑的用户环境变量中：
+
+```powershell
+$key = Read-Host 'API Key'
+[Environment]::SetEnvironmentVariable('QQ_BOT_API_KEY', $key, 'User')
+Remove-Variable key
+```
+
+随后设置监听名单并运行 `start.cmd`。程序会读取当前用户变量，兼容后台计划任务环境未刷新的情况。API模式默认纯文字；模型支持 `image_url` 时，将配置改为：
+
+```json
+"vision": {"enabled": true, "mode": "native"}
+```
+
+文字和图片都会发送到你配置的**同一个模型接口**。按服务要求可将 `output_token_parameter` 改为 `max_completion_tokens`，或将 `temperature` 设为 `null` 以省略。默认不发送Strata专用思考参数。若服务没有 `GET /models`，可设置 `check_models: false` 跳过列表检查。完整请求/响应与适配例子见 [数据与接口](docs/INTEGRATION.md)。
+
+## 数据、调用与项目结构
+
+- [数据与接口](docs/INTEGRATION.md)：消息字段、图片、记忆、请求JSON、JSON命令行、外部AI循环示例。
+- [工作方式](docs/ARCHITECTURE.md)：从QQ界面到模型再到发送确认的流程与模块。
+- [本地 AI 部署](docs/LOCAL_AI.md)：完整命令、固定版本、下载校验、复用、启动停止、排障。
+- [本地数据与隐私](docs/PRIVACY.md)：会记录什么、上传给谁、容量边界。
+- [验证说明](docs/TESTING.md)：原机实测与公开安装脚本测试的区别。
+
+```text
+bot.py / memory.py / reasoning.py       聊天循环、独立记忆和推理策略
+native_vision.py / vision.py           原生图文上下文、选图及采集
+desktop.py / transport.py              QQ桌面操作、核验、草稿与回读
+direct_reader.py / read-qq-*.ps1        UIA文字、身份和图片节点
+bridge.py                             对外JSON命令行适配器
+runtime.py                            路径、API鉴权和请求参数
+manager.py                            监听对象管理器
+deployment/                           固定模型清单、安装和模型服务
+docs/ / tests/                        文档与核心回归检查
+```
+
+本项目只发布源代码、示例配置、人格与词典示例。不发布账号、真实群号、聊天记录、截图、模型权重或私人部署日志。依赖和模型遵循各自许可证；本仓库暂未另行指定代码许可证。

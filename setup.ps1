@@ -25,7 +25,7 @@ if(-not (Test-Path -LiteralPath $pythonExe)){
 }
 & $pythonExe -m pip install -r (Join-Path $PSScriptRoot 'requirements.txt')
 if($LASTEXITCODE -ne 0){throw '依赖安装失败，请检查上方错误后重试。'}
-foreach($pair in @(@('config.example.json','config.json'),@('targets.example.json','targets.json'),@('personality.example.md','personality.md'))){
+foreach($pair in @(@('config.example.json','config.json'),@('targets.example.json','targets.json'),@('personality.example.md','personality.md'),@('internet-slang.example.md','internet-slang.md'))){
     $destination=Join-Path $PSScriptRoot $pair[1]
     if(-not (Test-Path -LiteralPath $destination)){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $pair[0]) -Destination $destination}
 }

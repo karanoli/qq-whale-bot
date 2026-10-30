@@ -45,3 +45,7 @@ __pycache__/
 Thumbs.db
 .idea/
 .vscode/
+
+# Editable slang and local AI deployment state
+/internet-slang.md
+/.local-ai/
