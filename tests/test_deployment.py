@@ -65,7 +65,7 @@ class InstallPlanTests(unittest.TestCase):
             repo=Path(d)
             with self.assertRaises(ValueError):checked_root(repo,repo)
             with self.assertRaises(ValueError):checked_root(repo/"models",repo)
-            self.assertEqual(checked_root(repo/".local-ai/models",repo),repo/".local-ai/models")
+            self.assertEqual(checked_root(repo/".local-ai/models",repo),(repo/".local-ai/models").resolve())
     def test_archive_traversal_is_rejected_before_extraction(self):
         with temporary() as d:
             root=Path(d);p=root/"bad.zip"

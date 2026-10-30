@@ -87,7 +87,7 @@ class APICompatibilityTests(unittest.TestCase):
     def test_slang_resolves_relative_to_config(self):
         with temporary() as d:
             p=Path(d)/"config.json";p.write_text(json.dumps(dict(self_names=["小鲸"])),encoding="utf-8")
-            self.assertEqual(Path(load_config(p)["slang"]),Path(d)/"internet-slang.md")
+            self.assertEqual(Path(load_config(p)["slang"]).resolve(),(Path(d)/"internet-slang.md").resolve())
     def test_token_parameter_and_omitted_temperature(self):
         cfg=dict(model="api",temperature=None,output_token_parameter="max_completion_tokens")
         payload=chat_payload(cfg,[],dict(max_tokens=64))
