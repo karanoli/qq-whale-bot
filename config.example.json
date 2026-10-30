@@ -1,0 +1,41 @@
+{
+  "window_size": [
+    1200,
+    800
+  ],
+  "endpoint": "http://127.0.0.1:8095/v1/chat/completions",
+  "model": "local-chat",
+  "api_key_env": "QQ_BOT_API_KEY",
+  "persona": "personality.md",
+  "self_names": [
+    "小鲸"
+  ],
+  "poll_seconds": 5,
+  "cooldown_seconds": 30,
+  "max_reply_chars": 240,
+  "temperature": 0.7,
+  "send_reasoning_parameters": false,
+  "debug_snapshots": false,
+  "vision": {
+    "enabled": false,
+    "endpoint": "http://127.0.0.1:8081/v1/chat/completions",
+    "model": "vision-local",
+    "api_key_env": "QQ_BOT_VISION_API_KEY",
+    "allowed_roots": [
+      "conversations"
+    ]
+  },
+  "reasoning": {
+    "default": "medium",
+    "medium": {
+      "budget": 384,
+      "max_tokens": 1152,
+      "timeout_seconds": 300
+    },
+    "high": {
+      "budget": 1536,
+      "max_tokens": 2304,
+      "timeout_seconds": 600
+    }
+  }
+}

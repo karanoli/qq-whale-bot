@@ -1,0 +1,47 @@
+# Local configuration, identity and persona
+/config.json
+/targets.json
+/targets-before-change.json
+/personality.md
+.env
+.env.*
+!.env.example
+# Private runtime state, screenshots and reset archives
+/conversations/
+/diagnostics/
+/memory-backups/
+/logs/
+/STOP
+/bot-status.json
+/reset-last.json
+/state.json
+/last-*.json
+/last-*.txt
+*.jsonl
+*.jsonl.*
+*.log
+*.log.*
+*.tmp
+# Environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.test-tmp/
+.pytest_cache/
+.ruff_cache/
+# Large local assets
+/models/
+*.gguf
+*.safetensors
+*.onnx
+*.pth
+*.bin
+*.zip
+*.7z
+*.tar
+*.tar.gz
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
