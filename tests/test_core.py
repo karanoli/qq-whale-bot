@@ -151,8 +151,8 @@ class ConfigTests(unittest.TestCase):
     def test_relative_paths_follow_config_location(self):
         path = self.config_file()
         cfg = load_config(path)
-        self.assertEqual(Path(cfg['persona']), path.parent / 'personality.md')
-        self.assertEqual(Path(cfg['vision']['allowed_roots'][0]), path.parent / 'conversations')
+        self.assertEqual(Path(cfg['persona']).resolve(), (path.parent / 'personality.md').resolve())
+        self.assertEqual(Path(cfg['vision']['allowed_roots'][0]).resolve(), (path.parent / 'conversations').resolve())
 
     def test_empty_self_names_rejected(self):
         path = self.config_file()
