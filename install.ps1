@@ -17,7 +17,7 @@ if($Plan){
  return
 }
 if($env:OS -ne 'Windows_NT'){throw '安装用于Windows 10/11；Mac可整理源码和运行核心测试。'}
-if($Mode -eq 'API' -and (!$Endpoint -or !$Model)){throw 'API模式请同时提供-Endpoint和-Model。'}
+
 $launcher=$Python
 if(!$launcher){
  foreach($v in @('3.12','3.11','3.10')){
@@ -70,5 +70,6 @@ if($Mode -eq 'Local'){
  & $pythonExe (Join-Path $PSScriptRoot 'deployment/install_local_ai.py') @options
  if($LASTEXITCODE -ne 0){throw '本地模型尚未装完；修复上方错误后重跑同一命令，下载可续传。'}
 }
-Write-Host '软件部署完成。请登录官方QQ，确认config.json内self_names是自己的QQ昵称。'
+Write-Host '软件部署完成。API用户可双击model-settings.cmd，填地址和Key、获取模型列表并调整思考。'
+Write-Host '请登录官方QQ，确认config.json内self_names是自己的QQ昵称。'
 Write-Host '运行manage.cmd添加并核验群聊/个人，然后用start-all.cmd启动；stop-all.cmd停止本项目自己的服务。'

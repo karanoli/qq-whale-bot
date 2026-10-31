@@ -49,3 +49,7 @@ Thumbs.db
 # Editable slang and local AI deployment state
 /internet-slang.md
 /.local-ai/
+
+# Windows DPAPI encrypted credentials
+/.secrets/
+*.dpapi

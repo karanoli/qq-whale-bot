@@ -51,6 +51,8 @@
 
 ## 直接替换模型
 
+推荐先用model-settings.cmd填写地址和Key、获取模型列表并选档位；手动配置仍支持以下字段。详见[设置窗口](MODEL_SETTINGS.md)。
+
 ```json
 {
   "endpoint": "https://api.example.com/v1/chat/completions",
@@ -70,13 +72,14 @@
 
 这是字段节选，请以完整config.example.json为基础。只会发一个模型请求，不再先找千问生成图片描述。纯文本模型关闭vision.enabled。图像模型需接受 `image_url` 的data URL；如果服务有自己的格式，需在runtime.chat_payload或外部适配器中转换，不能只把接口地址改成Responses等不兼容端点。
 
-API Key优先从当前进程环境读取；Windows后台任务未刷新时，回读当前用户的Environment注册表项。不输出密钥，不把它塞进prompt或JSON桥接结果。
+设置窗口保存的Key优先从api_key_file指定的DPAPI文件解密；否则按api_key_env读取进程环境，Windows再回读当前用户Environment项。密钥绑定API地址，不输出到prompt或JSON桥接结果。
 
 兼容字段：
 - 常规请求：model、messages、max_tokens、temperature。
 - 服务要求时可选 `output_token_parameter: "max_completion_tokens"`。
 - `temperature: null` 表示不发temperature。
-- 只有服务同时支持Strata扩展时才开启send_reasoning_parameters，它会添加reasoning_effort与reasoning_budget_tokens；这不是所有API的通用标准。
+- reasoning_api可选off（不发送）、effort（仅reasoning_effort）、strata（程度＋非关闭档的预算）。旧send_reasoning_parameters只在没有reasoning_api时用于兼容。
+- reasoning.mode为fixed时固定default档位，auto时允许复杂问题提高。none/low/medium/high及预算可在窗口设置；服务是否支持对应取值以其文档为准。
 - doctor默认检查GET /models及model名称；服务没有此接口时设check_models=false。跳过检查不等于服务一定可用。
 - trust_env=false使聊天请求不自动走环境代理；确需代理时显式设true。
 - 生成截断、空回复、超过max_reply_chars、错误的静默标记均不发送。

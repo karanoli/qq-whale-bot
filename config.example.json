@@ -31,10 +31,22 @@
       "budget": 1536,
       "max_tokens": 2304,
       "timeout_seconds": 600
+    },
+    "mode": "auto",
+    "none": {
+      "budget": 0,
+      "max_tokens": 512,
+      "timeout_seconds": 180
+    },
+    "low": {
+      "budget": 128,
+      "max_tokens": 768,
+      "timeout_seconds": 240
     }
   },
   "slang": "internet-slang.md",
   "trust_env": false,
   "output_token_parameter": "max_tokens",
-  "check_models": true
+  "check_models": true,
+  "reasoning_api": "off"
 }

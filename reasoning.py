@@ -1,4 +1,5 @@
 import re
+from model_config import LEVELS,DEFAULT_LIMITS
 
 def choose(memory,cfg):
     policy=cfg.get('reasoning',{});pending=set(memory.data.get('pending',[]))
@@ -16,10 +17,16 @@ def choose(memory,cfg):
     hard=re.search(r'证明|推导|最优|复杂度|动态规划|死锁|漏洞|内存越界|溢出',text)
     code=(chr(96)*3 in text or '#include' in text or 'Traceback (most recent call last)' in text or bool(re.search(r'(class|def) [A-Za-z_]+',text))) and len(text)>160
     visual_task=bool(re.search(r'数学|方程|公式|几何|程序|代码|题目',observed)) and bool(action)
-    if low_request or medium_request:effort='medium';reason='explicit_medium'
+    fixed=policy.get('mode','auto')=='fixed'
+    no_thinking=re.search(r'关闭思考|不(要|用)?思考|不(要|用)?推理',text)
+    explicit_low=re.search(r'低(档|强度|度)?(推理|思考)',text)
+    if fixed:reason='fixed'
+    elif no_thinking:effort='none';reason='explicit_none'
+    elif explicit_low:effort='low';reason='explicit_low'
+    elif low_request or medium_request:effort='medium';reason='explicit_medium'
     elif high_request:effort='high';reason='explicit_high'
     elif code or visual_task or (domain and action and (hard or len(text)>220)):effort='high';reason='complex_task'
-    if effort not in ('medium','high'):effort='medium'
-    defaults={'medium':dict(budget=384,max_tokens=1152,timeout_seconds=300),'high':dict(budget=1536,max_tokens=2304,timeout_seconds=600)}
-    limits=dict(defaults[effort]);limits.update(policy.get(effort,{}))
+    if effort not in LEVELS:effort='medium'
+    limits=dict(DEFAULT_LIMITS[effort]);limits.update(policy.get(effort,{}))
+    if effort=='none':limits['budget']=0
     return dict(effort=effort,reason=reason,reasoning_budget_tokens=int(limits['budget']),max_tokens=int(limits['max_tokens']),timeout_seconds=int(limits['timeout_seconds']))

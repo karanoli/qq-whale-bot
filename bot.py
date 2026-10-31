@@ -18,6 +18,8 @@ def log(event,target=None,**data):
     atomic(ROOT/'bot-status.json',row)
     if target:atomic(ROOT/'conversations'/key(target)/'status.json',row)
 def generate(memory):
+    global CFG
+    CFG=load_config()
     from native_vision import fresh_rows,context,system_prompt,NO_REPLY,note_image,image_question
     target=memory.target;fresh=fresh_rows(memory)
     native=CFG.get('vision',{}).get('mode')=='native'
@@ -63,6 +65,8 @@ def generate(memory):
     return text
 
 def process(target,transport):
+    global CFG
+    CFG=load_config()
     process_started=time.monotonic()
     memory=Memory(target)
     memory.data['bot_names']=list(dict.fromkeys(memory.data['bot_names']+CFG.get('self_names',[])))

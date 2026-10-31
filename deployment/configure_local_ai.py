@@ -21,7 +21,8 @@ def configure(ai_root, source, python, exe, pack, apply_bot=False, repo=REPO):
         base=read_json(target if target.exists() else repo/"config.example.json")
         if target.exists(): atomic(state/"bot-config.before-local-ai.json",base)
         base.update(endpoint="http://127.0.0.1:%d/v1/chat/completions"%model["port"],
-                    model=model["alias"],api_key_env="",send_reasoning_parameters=True,
+                    model=model["alias"],api_key_env="",reasoning_api="strata",send_reasoning_parameters=True,
                     vision=dict(enabled=True,mode="native"))
+        base.pop("api_key_file",None)
         atomic(target,base)
     return cfg

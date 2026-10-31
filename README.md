@@ -91,27 +91,23 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -Mode Local -Q
 ## 部署：使用已有 API，不装275GB模型
 
 ```powershell
-.\install.ps1 -Mode API -QQName '你当前的QQ昵称' -Endpoint 'https://api.example.com/v1/chat/completions' -Model '你的模型名'
+.\install.ps1 -Mode API -QQName '你当前的QQ昵称'
+.\model-settings.cmd
 ```
 
-API密钥只设置在自己电脑的用户环境变量中：
+在“模型与思考设置”中填写API地址和Key，点击“获取模型列表”，下拉选择模型后保存。Key用Windows账户加密，不写入config.json；接口只返回一个模型时自动选中，多个时由你选择。没有列表接口也可以手填模型ID。
 
-```powershell
-$key = Read-Host 'API Key'
-[Environment]::SetEnvironmentVariable('QQ_BOT_API_KEY', $key, 'User')
-Remove-Variable key
-```
+同一窗口可选择**关闭/低/中/高思考**、是否让复杂问题自动提高，以及各档token预算。提供“兼容模式 / 通用effort / 本地Strata”三种参数格式；不同服务支持的字段不同，不承诺所有API都接受全部档位。详见[模型与思考设置](docs/MODEL_SETTINGS.md)。
 
-随后设置监听名单并运行 `start.cmd`。程序会读取当前用户变量，兼容后台计划任务环境未刷新的情况。API模式默认纯文字；模型支持 `image_url` 时，将配置改为：
+打开设置会暂停这份项目自己的聊天脚本，关闭后恢复原来状态；模型服务不停止。设置监听名单后运行start.cmd。本地和API配置都可用这个窗口修改，不需要手动改模型名。
 
-```json
-"vision": {"enabled": true, "mode": "native"}
-```
+高级用户仍可在安装时指定 `-Endpoint` 与 `-Model`，或使用环境变量。API模式默认纯文字；所选模型支持原生图片时在窗口勾选“原生识图”。文字和图片发往**同一个模型接口**。
 
-文字和图片都会发送到你配置的**同一个模型接口**。按服务要求可将 `output_token_parameter` 改为 `max_completion_tokens`，或将 `temperature` 设为 `null` 以省略。默认不发送Strata专用思考参数。若服务没有 `GET /models`，可设置 `check_models: false` 跳过列表检查。完整请求/响应与适配例子见 [数据与接口](docs/INTEGRATION.md)。
+按服务要求可选择max_tokens/max_completion_tokens、是否使用环境代理与是否检查模型列表。完整请求/响应和命令行桥接见[数据与接口](docs/INTEGRATION.md)。
 
 ## 数据、调用与项目结构
 
+- [模型与思考设置](docs/MODEL_SETTINGS.md)：地址与Key、模型列表、思考档位和预算。
 - [数据与接口](docs/INTEGRATION.md)：消息字段、图片、记忆、请求JSON、JSON命令行、外部AI循环示例。
 - [工作方式](docs/ARCHITECTURE.md)：从QQ界面到模型再到发送确认的流程与模块。
 - [本地 AI 部署](docs/LOCAL_AI.md)：完整命令、固定版本、下载校验、复用、启动停止、排障。
@@ -125,6 +121,7 @@ desktop.py / transport.py              QQ桌面操作、核验、草稿与回读
 direct_reader.py / read-qq-*.ps1        UIA文字、身份和图片节点
 bridge.py                             对外JSON命令行适配器
 runtime.py                            路径、API鉴权和请求参数
+model_settings.py / model_config.py    模型设置窗口、列表查询与加密密钥
 manager.py                            监听对象管理器
 deployment/                           固定模型清单、安装和模型服务
 docs/ / tests/                        文档与核心回归检查

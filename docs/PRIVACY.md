@@ -2,7 +2,7 @@
 
 ## 仓库和真实运行数据分开
 
-仓库只含程序、示例和文档。config.json、targets.json、personality.md、internet-slang.md、模型、密钥、截图、聊天记忆、运行日志和.local-ai都被Git忽略。监听名单初始为空。不要用git add -f把真实运行目录强制提交。
+仓库只含程序、示例和文档。config.json、targets.json、personality.md、internet-slang.md、模型、密钥、截图、聊天记忆、运行日志、.secrets和.local-ai都被Git忽略。监听名单初始为空。不要用git add -f把真实运行目录强制提交。
 
 示例人格与词典可公开；它们不包含真实联系人、群号或聊天历史。公开版不带原机的评测题目/回答和安装日志。
 
@@ -30,7 +30,7 @@
 - bridge read：只在本机stdout输出JSON；prompt输出可能含聊天内容和图片Base64。调用者决定是否进一步上传。
 - 运行日志可能包含QQ回复和错误，不要把日志整包附到公开Issue。
 
-API Key通过指定环境变量读取；Windows后台任务可回读当前用户Environment注册表项。不会写进prompt、示例文件或bridge输出。
+API Key可由设置窗口使用Windows DPAPI加密写入.secrets/*.dpapi，只能由相同Windows账户解密，且绑定API地址；config.json只保存路径。也可继续使用环境变量/当前用户Environment注册表项。它不会写进prompt、示例文件或bridge输出。
 
 ## 重置与账号切换
 

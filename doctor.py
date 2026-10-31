@@ -5,6 +5,7 @@ import json
 import sys
 import urllib.request
 from runtime import load_config,api_headers
+from model_config import normalize_endpoint,model_list_url
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument("--services-only",action="store_true");args=p.parse_args()
     cfg=load_config();errors=[]
@@ -12,11 +13,10 @@ def main():
         if sys.platform!="win32":errors.append("桌面机器人仅支持Windows，Mac可运行核心测试。")
         for name in ["requests","win32gui","cv2","PIL","numpy","onnxruntime","rapidocr_onnxruntime","tkinter"]:
             if importlib.util.find_spec(name) is None:errors.append("缺少依赖："+name)
-    endpoint=cfg["endpoint"]
-    if not endpoint.endswith("/chat/completions"):errors.append("endpoint应是以/chat/completions结尾的完整地址。")
-    elif cfg.get("check_models",True):
+    endpoint=normalize_endpoint(cfg["endpoint"])
+    if cfg.get("check_models",True):
         try:
-            url=endpoint[:-len("/chat/completions")]+"/models"
+            url=model_list_url(endpoint)
             request=urllib.request.Request(url,headers=api_headers(cfg))
             opener=urllib.request.build_opener() if cfg.get("trust_env") else urllib.request.build_opener(urllib.request.ProxyHandler({}))
             with opener.open(request,timeout=8) as response:data=json.load(response)

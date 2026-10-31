@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk,messagebox
-import json,re,threading,queue,subprocess,os,traceback
+import json,re,threading,queue,subprocess,os,traceback,sys
 from desktop import ROOT
 from transport import Transport
 from memory import targets,key,atomic,Memory
@@ -28,6 +28,7 @@ class Manager:
         ttk.Button(buttons,text='查看选中会话的记忆文件',command=self.show_memory).pack(side='left')
         ttk.Label(self.root,textvariable=self.status,padding=12,wraplength=860).pack(fill='x')
         bottom=ttk.Frame(self.root,padding=12);bottom.pack(fill='x')
+        ttk.Button(bottom,text='模型与思考设置',command=lambda:subprocess.Popen([sys.executable,str(ROOT/'model_settings.py')])).pack(side='left',padx=(0,10))
         self.go=ttk.Button(bottom,text='保存并开始监听',command=lambda:self.close(True));self.go.pack(side='right')
         ttk.Button(bottom,text='保持停止并关闭',command=lambda:self.close(False)).pack(side='right',padx=8)
         ttk.Label(bottom,text='打开管理窗口时暂停机器人，避免鼠标键盘冲突。').pack(side='left')

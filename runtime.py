@@ -15,6 +15,12 @@ def load_config(path=None):
     for field, default in [('persona','personality.md'),('slang','internet-slang.md')]:
         value=Path(cfg.get(field,default))
         cfg[field]=str(value if value.is_absolute() else base/value)
+    if cfg.get('api_key_file'):
+        value=Path(cfg['api_key_file'])
+        cfg['api_key_file']=str(value if value.is_absolute() else base/value)
+    if cfg.get('endpoint'):
+        from model_config import normalize_endpoint
+        cfg['endpoint']=normalize_endpoint(cfg['endpoint'])
     vision = dict(cfg.get('vision', {}))
     vision['allowed_roots'] = [
         str(Path(value) if Path(value).is_absolute() else base / value)
@@ -30,6 +36,11 @@ def load_config(path=None):
 
 
 def api_headers(cfg):
+    if cfg.get('api_key_file'):
+        from model_config import read_secret
+        path=Path(cfg['api_key_file'])
+        if not path.is_absolute():path=ROOT/path
+        return {'Authorization':'Bearer '+read_secret(path,cfg['endpoint'])}
     name = cfg.get('api_key_env', '')
     value = os.environ.get(name, '') if name else ''
     if name and not value and os.name=='nt':
@@ -51,7 +62,10 @@ def chat_payload(cfg, messages, profile):
     payload[parameter]=profile['max_tokens']
     if cfg.get('temperature',.7) is not None:
         payload['temperature']=cfg.get('temperature',.7)
-    if cfg.get('send_reasoning_parameters',False):
-        payload.update(reasoning_effort=profile['effort'],
-                       reasoning_budget_tokens=profile['reasoning_budget_tokens'])
+    from model_config import reasoning_protocol
+    protocol=reasoning_protocol(cfg)
+    if protocol in ('effort','strata'):
+        payload['reasoning_effort']=profile['effort']
+    if protocol=='strata' and profile['effort']!='none':
+        payload['reasoning_budget_tokens']=profile['reasoning_budget_tokens']
     return payload
