@@ -129,3 +129,7 @@ manager.py                            监听对象管理器
 deployment/                           固定模型清单、安装和模型服务
 docs/ / tests/                        文档与核心回归检查
 ```
+
+## 许可证
+
+本项目代码采用 [MIT License](LICENSE)。第三方模型和依赖遵循各自许可证。
