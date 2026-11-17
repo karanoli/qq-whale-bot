@@ -1,9 +1,11 @@
 from reply_text import clean_reply
 import json,time,traceback,threading,queue,re,sys
 from pathlib import Path
+import pywintypes
 import requests,win32event,win32api,winerror
 from desktop import ROOT,check_stop,pause,Stopped,DesktopError
 from transport import Transport
+from qq_window_setup import configure_qq_window
 from memory import Memory,atomic,targets,key
 from storage import rotate_log
 from vision import Vision
@@ -94,6 +96,14 @@ def main():
     if win32api.GetLastError()==winerror.ERROR_ALREADY_EXISTS:raise RuntimeError('旧版小鲸正在操作QQ，请先停止旧版。')
     mutex=win32event.CreateMutex(None,False,'Local\\QQWhaleBot')
     if win32api.GetLastError()==winerror.ERROR_ALREADY_EXISTS:raise RuntimeError('Visual bot already running')
+    try:
+        before, after = configure_qq_window(CFG['window_size'])
+    except Stopped:
+        raise
+    except (DesktopError, pywintypes.error) as exc:
+        log('qq_window_setup_failed', error=str(exc))
+    else:
+        log('qq_window_ready', before=before, after=after)
     pool={};retry={};log('multi_target_started')
     while True:
         check_stop()

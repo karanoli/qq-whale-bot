@@ -52,18 +52,28 @@ def norm(text): return re.sub(r'\s+','',text).casefold()
 def center(line):
     a=line['box']; return ((min(p[0] for p in a)+max(p[0] for p in a))/2,(min(p[1] for p in a)+max(p[1] for p in a))/2)
 
+def find_qq_window():
+    found = []
+
+    def visit(hwnd, _):
+        if (win32gui.IsWindowVisible(hwnd)
+                and win32gui.GetWindowText(hwnd) == 'QQ'
+                and win32gui.GetClassName(hwnd) == 'Chrome_WidgetWin_1'):
+            found.append(hwnd)
+
+    win32gui.EnumWindows(visit, None)
+    if len(found) != 1:
+        raise DesktopError(f'Expected one visible main QQ window, got {len(found)}')
+    return found[0]
+
+
 class QQDesktop:
     def __init__(self):
         self.ocr=RapidOCR(intra_op_num_threads=2,inter_op_num_threads=1)
         self.hwnd=None
         self.debug=load_config().get('debug_snapshots',False)
     def window(self):
-        found=[]
-        def visit(h,_):
-            if win32gui.IsWindowVisible(h) and win32gui.GetWindowText(h)=='QQ' and win32gui.GetClassName(h)=='Chrome_WidgetWin_1': found.append(h)
-        win32gui.EnumWindows(visit,None)
-        if len(found)!=1: raise DesktopError('Expected one visible main QQ window, got '+str(len(found)))
-        self.hwnd=found[0]
+        self.hwnd=find_qq_window()
         return self.hwnd
     def focus(self):
         h=self.window()

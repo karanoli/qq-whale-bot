@@ -81,9 +81,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -Mode Local -Q
 
 1. 安装并登录官方 Windows QQ。先在 QQ 中打开要监听的会话，使它出现在最近会话中。
 2. 如果读不到聊天节点，退出 QQ 后按 [QQ 无障碍设置](docs/LOCAL_AI.md#qq读取前的设置) 用 `--force-renderer-accessibility` 启动；本项目不自动重启你的 QQ。
-3. 确认 `config.json` 的 `self_names` 是机器人当前昵称；运行 `prepare-window.cmd` 调整窗口到1200×800。系统缩放和QQ布局仍需匹配。
+3. 确认 `config.json` 的 `self_names` 是机器人当前昵称。首次添加监听对象前，运行 `prepare-window.cmd` 把窗口调到配置尺寸（默认 1200×800）。系统缩放和 QQ 布局仍需匹配。
 4. 运行 `manage.cmd`，输入群/个人号码与当前完整名称，核验后添加。初始名单为空。
-5. 双击 **`start-all.cmd`**：启动/复用原生模型服务，再开始监听。第一屏只建基线，请发一条新消息测试。
+5. 双击 **`start-all.cmd`**：启动/复用原生模型服务。机器人每次启动时会先按 `config.json` 的 `window_size` 设置一次 QQ 窗口，再开始监听。第一屏只建基线，请发一条新消息测试。
 6. **`stop.cmd` / F8** 只停机器人；**`stop-all.cmd`** 同时停止本仓库自己启动的本地模型；QQ保留。
 
 程序使用交互计划任务，关闭启动终端后可继续运行；锁屏、切换桌面、关闭QQ或同时手动操作会使桌面控制失败。旧版小鲸仍运行时，新版会拒绝同时操作 QQ。
